@@ -1,7 +1,12 @@
 import socket, threading
 from servicess import *
-device_done = []
-input_ip = input("Nhập vào dải ip cần scan (192.168.x):  ")
+from datetime import datetime
+
+thoi_gian = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+ten_file = f"report_{thoi_gian}.txt"
+file_lock = threading.Lock()
+input_ip = "192.168.1"
+# input_ip = input(f"Nhập vào dải ip cần scan (192.168.x):  ")
 
 availble_port = [80, 443, 22, 445, 8080, 8443, 554, 9000, 1883]
 #quet port
@@ -12,8 +17,11 @@ def scan_port(ip, port):
         sock.settimeout(1)
         ket_qua = sock.connect_ex((ip, port)) #kiểm tra trạng thái kết nối với 1 ip, nếu ket_qua == 0 là đang kết nối/ ==1 là đóng hoặc bị chặn
         if ket_qua == 0:
-            print(f"{ip} | Cổng {port} chạy dịch vụ {services.get(port, 'unknown')} đang mở!")
-            
+            print(f"{ip} | Cổng {port} chạy dịch vụ {services.get(port, 'unknown')} đang mở!\n")
+            kq = f"{ip} | Cổng {port} chạy dịch vụ {services.get(port, 'unknown')} đang mở!\n"
+            with file_lock: 
+                with open(f"{ten_file}", "a", encoding="utf-8") as f:
+                    f.write(kq)
     except Exception as e:
         # print(f"Lỗi: {e}")
         pass
