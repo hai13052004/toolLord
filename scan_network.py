@@ -8,7 +8,7 @@ file_lock = threading.Lock()
 # input_ip = "192.168.1"
 input_ip = input(f"Nhập vào dải ip cần scan (3 octet đầu):  ")
 
-availble_port = [80, 443, 22, 445, 8080, 8443, 554, 9000, 1883]
+
 #quet port
 def scan_port(ip, port):
     try:
@@ -35,7 +35,6 @@ def scan_ip(ip):
         oke.join()
 
                                     
-
 
 #tìm xem có bao nhiêu thiết bị
 for i in range(1,255):
