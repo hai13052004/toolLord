@@ -5,8 +5,8 @@ from datetime import datetime
 thoi_gian = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 ten_file = f"report_{thoi_gian}.txt"
 file_lock = threading.Lock()
-input_ip = "192.168.1"
-# input_ip = input(f"Nhập vào dải ip cần scan (192.168.x):  ")
+# input_ip = "192.168.1"
+input_ip = input(f"Nhập vào dải ip cần scan (3 octet đầu):  ")
 
 availble_port = [80, 443, 22, 445, 8080, 8443, 554, 9000, 1883]
 #quet port
