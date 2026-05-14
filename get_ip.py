@@ -4,15 +4,15 @@ def get_local_ip():
     try:
         system = platform.system()
         
+        # TRƯỜNG HỢP WINDOWS
         if system == "Windows":
             result = subprocess.run(["ipconfig"], capture_output=True, text=True).stdout
             adapters = re.split(r'\n(?=[^\s])', result)
-            
             for adapter in adapters:
-            
-                if "VMware" in adapter or "Virtual" in adapter:
+                # Lọc bỏ VMware và VirtualBox
+                if any(x in adapter for x in ["VMware", "Virtual", "vboxnet"]):
                     continue
-                
+                # Tìm IPv4 trong adapter còn lại
                 ip_match = re.search(r"IPv4.*?:\s*([\d.]+)", adapter)
                 if ip_match:
                     ip = ip_match.group(1)
@@ -23,10 +23,19 @@ def get_local_ip():
         else:
             cmd = ["ip", "-4", "addr", "show"] if system == "Linux" else ["ifconfig"]
             result = subprocess.run(cmd, capture_output=True, text=True).stdout
-            interfaces = re.split(r'\n\d+: ', result) if system == "Linux" else re.split(r'\n(?=[^\s])', result)
             
+            # ƯU TIÊN: Tìm giao diện wlan0 (Wifi trên Android/Termux) trước
+            wlan_match = re.search(r'wlan0.*?inet\s+(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})', result, re.DOTALL)
+            if wlan_match:
+                ip = wlan_match.group(1)
+                parts = ip.split(".")
+                return f"{parts[0]}.{parts[1]}.{parts[2]}"
+
+            # NẾU KHÔNG CÓ WLAN0: Tìm các giao diện khác nhưng loại bỏ đồ ảo
+            interfaces = re.split(r'\n\d+: ', result) if system == "Linux" else re.split(r'\n(?=[^\s])', result)
             for iface in interfaces:
-                if "vmnet" in iface or "lo" in iface or "docker" in iface:
+                # Bỏ qua loopback và các card ảo phổ biến
+                if any(x in iface for x in ["lo", "vmnet", "docker", "vboxnet", "dummy"]):
                     continue
                 
                 ip_match = re.search(r'inet\s+(?:addr:)?(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})', iface)
@@ -39,4 +48,4 @@ def get_local_ip():
         return None
     return None
 
-print(f"Dải IP: {get_local_ip()}")
+print(f"Dải IP xác định được: {get_local_ip()}")
