@@ -1,4 +1,4 @@
-import socket, threading, time, subprocess, re, requests,os
+import socket, threading, time, subprocess, re, platform ,os
 from servicess import *
 from call_nvd import *
 from get_ip import *
@@ -16,10 +16,6 @@ elif choice == "2":
 elif choice == "3":
     input_ip = "192.168.1"
 
-
-
-
-
 console = Console()
 console.print(Panel.fit("[bold cyan]NETWORK PORT SCANNER[/bold cyan]\n[white]v1.0[/white]",
     border_style="cyan"))
@@ -32,14 +28,6 @@ if not os.path.exists(report_folder):
     os.makedirs(report_folder)
 ten_file = f"{report_folder}/report_{thoi_gian}.txt"
 file_lock = threading.Lock()
-
-# input_ip = get_local_ip()
-# if not input_ip:
-#     input_ip = input("Không tự lấy được IP, nhập thủ công (192.168.x): ")
-
-# console.print(f"[cyan]Tự động phát hiện dải: {input_ip}.0/24[/cyan]")
-
-
 
 #quet port
 def scan_port(ip, port, os_info):
@@ -101,16 +89,18 @@ def banner_grab(ip, port):
 
 def detect_os(ip):
     try:
-        result = subprocess.run(
-            ["ping", "-n" , "1", "-w", "1000", ip],
-            capture_output=True, text = True
-        )
-        ttl=re.search(r"TTL=(\d+)",result.stdout, re.IGNORECASE)
+        if platform.system() == "Windows":
+            cmd = ["ping", "-n", "1", "-w", "1000", ip]
+        else:  # Linux / macOS / Termux
+            cmd = ["ping", "-c", "1", "-W", "1", ip]
+            
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        ttl = re.search(r"TTL=(\d+)", result.stdout, re.IGNORECASE)
         if ttl:
             ttl_val = int(ttl.group(1))
             if ttl_val >= 128:
                 return "Windows"
-            elif ttl_val >= 64: 
+            elif ttl_val >= 64:
                 return "Linux/Mac/Router"
             else:
                 return "Network Device"
@@ -118,14 +108,10 @@ def detect_os(ip):
     except:
         return "Unknown"                                    
 
-
-
-
 #tìm xem có bao nhiêu thiết bị
 for i in range(1,255):
     ip= f"{input_ip}.{i}"
-    console.print(f"\n[bold white]Đang scan {ip}/24...[/bold white]\n")
+    console.print(f"\n[bold white]Đang scan {ip}/24...[/bold white]")
     scan_ip(ip)  
     
 
- 
